@@ -1,0 +1,92 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Inventory item for quotations",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "hsn": { "type": "string" },
+        "rate": { "type": "number" },
+        "unit": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "rate"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Customer details",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "gstin": { "type": "string" },
+        "state": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name"]
+    },
+    "Quotation": {
+      "title": "Quotation",
+      "description": "Generated quotation",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "quotationNo": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "items": { "type": "array" },
+        "totalTaxableValue": { "type": "number" },
+        "totalGstAmount": { "type": "number" },
+        "grandTotal": { "type": "number" },
+        "isIGST": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["draft", "sent", "paid"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "quotationNo", "customerId", "grandTotal"]
+    },
+    "CompanyProfile": {
+      "title": "Company Profile",
+      "description": "User's business details",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "website": { "type": "string" },
+        "gstin": { "type": "string" },
+        "pan": { "type": "string" },
+        "bankName": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "ifsc": { "type": "string" },
+        "branch": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of inventory items"
+    },
+    "/customers/{customerId}": {
+      "schema": "Customer",
+      "description": "Collection of customers"
+    },
+    "/quotations/{quotationId}": {
+      "schema": "Quotation",
+      "description": "Collection of quotations"
+    },
+    "/companyProfile/{uid}": {
+      "schema": "CompanyProfile",
+      "description": "Single company profile per user"
+    }
+  }
+}

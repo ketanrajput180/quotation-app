@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Product validation
+    function isValidProduct(p) {
+      return p.keys().hasAll(['userId', 'name', 'rate']) &&
+             p.userId == request.auth.uid &&
+             p.name is string && p.name.size() > 0 && p.name.size() <= 200 &&
+             p.rate is number && p.rate >= 0;
+    }
+
+    match /products/{productId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidProduct(incoming());
+      allow update: if isSignedIn() && isValidProduct(incoming()) && 
+                    existing().userId == request.auth.uid &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'hsn', 'rate', 'unit', 'updatedAt']);
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // Customer validation
+    function isValidCustomer(c) {
+      return c.keys().hasAll(['userId', 'name']) &&
+             c.userId == request.auth.uid &&
+             c.name is string && c.name.size() > 0 && c.name.size() <= 100;
+    }
+
+    match /customers/{customerId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidCustomer(incoming());
+      allow update: if isSignedIn() && isValidCustomer(incoming()) && 
+                    existing().userId == request.auth.uid &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'email', 'phone', 'address', 'gstin', 'state', 'updatedAt']);
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // Quotation validation
+    function isValidQuotation(q) {
+      return q.keys().hasAll(['userId', 'quotationNo', 'customerId', 'grandTotal']) &&
+             q.userId == request.auth.uid &&
+             q.quotationNo is string && q.quotationNo.size() > 0 && q.quotationNo.size() <= 100 &&
+             q.customerId is string && q.customerId.size() > 0 &&
+             q.grandTotal is number;
+    }
+
+    match /quotations/{quotationId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidQuotation(incoming());
+      allow update: if isSignedIn() && isValidQuotation(incoming()) && 
+                    existing().userId == request.auth.uid &&
+                    incoming().diff(existing()).affectedKeys().hasOnly([
+                      'quotationNo', 'date', 'customerId', 'customerName', 'items', 
+                      'totalTaxableValue', 'totalGstAmount', 'grandTotal', 'isIGST', 
+                      'status', 'termsAndConditions', 'updatedAt'
+                    ]);
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // Company Profile
+    match /companyProfile/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if isSignedIn() && request.auth.uid == uid;
+    }
+  }
+}
